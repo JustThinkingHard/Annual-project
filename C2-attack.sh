@@ -6,7 +6,7 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 
-echo "checking if the path..."
+echo "checking if the path exists..."
 # Check if the device is mounted
 if mount | grep -q "$1"; then
     echo "Path is correct. Proceeding with the attack..."
