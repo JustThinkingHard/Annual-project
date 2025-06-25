@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Check if an argument is given
+if [ $# -eq 0 ]; then
+    echo "No arguments provided. Please provide a valid path to where the Pico is mounted."
+    exit 1
+fi
+
+echo "checking if the path..."
+# Check if the device is mounted
+if mount | grep -q "$1"; then
+    echo "Path is correct. Proceeding with the attack..."
+else
+    echo "Path not correct. Please mount the device and try again."
+    exit 1
+fi
+
+python3 contact.py $1 && python3 Base-C2/server.py

