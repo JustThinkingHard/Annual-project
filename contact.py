@@ -73,11 +73,14 @@ class SingleFileHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         return None
 
     def do_GET(self):
-        if self.path == "/client_r.py":
+        if self.path == "/xfs.image":
             super().do_GET()
             print("File retrieved, shutting down server...\n\n\n")
             # Shut down the server
             exit(0)
+        elif self.path == "/client_r.py":
+            super().do_GET()
+            print("File retrieved, client ready to run...\n\n\n")
         else:
             self.send_error(404, "File not found")
 

